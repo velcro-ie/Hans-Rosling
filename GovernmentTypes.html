@@ -1,0 +1,352 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link href="d3-geomap/css/d3.geomap.css" rel="stylesheet">
+        <script src="d3-geomap/vendor/d3.geomap.dependencies.min.js"></script>
+        <script src="d3-geomap/js/d3.geomap.min.js"></script>
+        
+        <link href="themes/mystyle.css" rel="stylesheet"/>
+    </head>
+    <body>
+        <h1>Do continents tend to have the same government type?</h1>
+        <div id="World_Map">
+            <div id="Display_Map"></div>
+        </div>
+        <div class = "legend2">
+            <h2 style="margin:2px;">Legend</h2>
+            <table>
+                <tr>
+                    <td colspan="8"><h3>Political Republics</h3></td>
+                </tr><tr>
+                    <td width="3%"></td>
+                    <td width="22%"></td>
+                    <td  width="3%" class="leftCell" style="background-color: #b2df8a"></td>
+                    <td width="22%">0) People's Republic</td>
+                    <td  width="3%" class="leftCell" style="background-color: #33a02c"></td>
+                    <td width="22%">1) Socialist Republic</td>
+                    <td  width="3%"></td>
+                    <td width="22%"></td>
+                </tr><tr>
+                    <td colspan="8"><h3>Federation</h3></td>
+                </tr><tr>
+                    <td class="leftCell" style="background-color: #a6cee3"></td>
+                    <td>2) Federation</td>
+                    <td class="leftCell" style="background-color: #48D1CC"></td>
+                    <td>3) Federal Republic</td>
+                    <td class="leftCell" style="background-color: #5F9EA0"></td>
+                    <td>4) Parliamentary Federal Republic</td>
+                    <td class="leftCell" style="background-color: #0000FF"></td>
+                    <td>5) Presidential Federal Republic</td>
+                </tr><tr>
+                    <td colspan="8"><h3>Republics</h3></td>
+                </tr><tr>
+                    <td></td>
+                    <td></td>
+                    <td class="leftCell" style="background-color: #cab2d6"></td>
+                    <td>6) Republic</td>
+                    <td class="leftCell" style="background-color: #6a3d9a"></td>
+                    <td>7) Parliamentary Republic</td>
+                    <td></td>
+                    <td></td>
+                </tr><tr>
+                    <td colspan="8"><h3>Monarchies</h3></td>
+                </tr><tr>
+                    <td class="leftCell" style="background-color: #fdbf6f"></td>
+                    <td>8) Monarchy</td>
+                    <td class="leftCell" style="background-color: #ff7f00"></td>
+                    <td>9) Absolute Monarchy</td>
+                    <td class="leftCell" style="background-color: #ffff99"></td>
+                    <td>10) Constitutional Monarchy</td>
+                    <td class="leftCell" style="background-color: #b15928"></td>
+                    <td>11) Parliamentary Monarchy</td>
+                </tr><tr>
+                    <td colspan="8"><h3>Religious Republics</h3></td>
+                </tr><tr>
+                    <td></td>
+                    <td></td>
+                    <td class="leftCell" style="background-color: #fb9a99"></td>
+                    <td>12) Islamic Republic</td>
+                    <td class="leftCell" style="background-color: #e31a1c"></td>
+                    <td>13) Islamic-Socialist People's Republic</td>
+                    <td></td>
+                    <td></td>
+                </tr><tr>
+                    <td colspan="8"><h3>Foreign Territories</h3></td>
+                </tr><tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="leftCell" style="background-color: #808080"></td>
+                    <td>14) Foreign Territories of Another Country</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </body>
+<script>
+    // the year to display
+var display_year = 0;
+var svg_width = 900;
+var svg_height = 550;
+var margin = {top: 10, right: 10, bottom: 10, left: 10};
+var pause = false;  //variable to pause the animation.
+    
+    // ---------------------------------------Create the svg element------------------------------------
+var svg = d3.select(".World_Map")
+    .append("svg")
+    .attr("width", svg_width)
+    .attr("height", svg_height)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    var map = d3.geomap.choropleth()
+    .geofile('d3-geomap/topojson/world/countries.json')
+    .colors(['#b2df8a',  '#33a02c',  '#a6cee3', '#48D1CC', '#5F9EA0', '#0000FF', '#cab2d6', '#6a3d9a', '#fdbf6f', '#ff7f00', '#ffff99', '#b15928', '#fb9a99', '#e31a1c', '#808080'])
+    .column('govType')
+    .domain([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14])
+    .legend(false)
+    .unitId('Country');
+    
+    d3.csv('data/Gapminder_All_Time.csv', function(error, data) {
+        if(error){
+            console.log("Something went wrong");
+            console.log(error);
+        }else{
+            console.log(data);
+            
+            dataset = data;
+            
+// ------------------- get one years data -------------------------
+            display_year = 2000;
+            var filtered_datset = dataset.filter(yearFilter);
+            
+// ------------------- change the country code and set the id for the government type -------------------------
+            for(var i=0;i<filtered_datset.length;i++){
+                filtered_datset[i].Country = ctryCode(filtered_datset[i].Code);
+                filtered_datset[i].govType = setGov(filtered_datset[i].Government);
+            }
+
+// ------------------- display the map -------------------------
+            d3.select('#Display_Map')
+                .datum(filtered_datset)
+                .call(map.draw, map);
+        }// end if error
+}); // end open file
+    
+function yearFilter(value){
+        return (value.Year == display_year)
+    }
+    
+var format = function(d) {
+    return d.Government;
+//    return d3.format(',.02f')(d) + 'M';
+}
+function ctryCode(ctry){
+    switch (ctry) {
+        case "AF": return "AFG";break;
+        case "AL": return "ALB";break;
+        case "DZ": return "DZA";break;
+        case "AD": return "AND";break;
+        case "AO": return "AGO";break;
+        case "AG": return "ATG";break;
+        case "AR": return "ARG";break;
+        case "AM": return "ARM";break;
+        case "AW": return "ABW";break;
+        case "AU": return "AUS";break;
+        case "AT": return "AUT";break;
+        case "AZ": return "AZE";break;
+        case "BS": return "BHS";break;
+        case "BH": return "BHR";break;
+        case "BD": return "BGD";break;
+        case "BB": return "BRB";break;
+        case "BY": return "BLR";break;
+        case "BE": return "BEL";break;
+        case "BZ": return "BLZ";break;
+        case "BJ": return "BEN";break;
+        case "BT": return "BTN";break;
+        case "BO": return "BOL";break;
+        case "BA": return "BIH";break;
+        case "BW": return "BWA";break;
+        case "BR": return "BRA";break;
+        case "BN": return "BRN";break;
+        case "BG": return "BGR";break;
+        case "BF": return "BFA";break;
+        case "BI": return "BDI";break;
+        case "KH": return "KHM";break;
+        case "CM": return "CMR";break;
+        case "CA": return "CAN";break;
+        case "CV": return "CPV";break;
+        case "CF": return "CAF";break;
+        case "TD": return "TCD";break;
+        case "CL": return "CHL";break;
+        case "CN": return "CHN";break;
+        case "CO": return "COL";break;
+        case "KM": return "COM";break;
+        case "CR": return "CRI";break;
+        case "HR": return "HRV";break;
+        case "CU": return "CUB";break;
+        case "CY": return "CYP";break;
+        case "CZ": return "CZE";break;
+        case "DK": return "DNK";break;
+        case "DJ": return "DJI";break;
+        case "DM": return "DMA";break;
+        case "DO": return "DOM";break;
+        case "EC": return "ECU";break;
+        case "EG": return "EGY";break;
+        case "SV": return "SLV";break;
+        case "GQ": return "GNQ";break;
+        case "ER": return "ERI";break;
+        case "EE": return "EST";break;
+        case "ET": return "ETH";break;
+        case "FJ": return "FJI";break;
+        case "FI": return "FIN";break;
+        case "FR": return "FRA";break;
+        case "GA": return "GAB";break;
+        case "GM": return "GMB";break;
+        case "GE": return "GEO";break;
+        case "DE": return "DEU";break;
+        case "GH": return "GHA";break;
+        case "GR": return "GRC";break;
+        case "GL": return "GRL";break;
+        case "GD": return "GRD";break;
+        case "GT": return "GTM";break;
+        case "GN": return "GIN";break;
+        case "GW": return "GNB";break;
+        case "GY": return "GUY";break;
+        case "HT": return "HTI";break;
+        case "HN": return "HND";break;
+        case "HU": return "HUN";break;
+        case "IS": return "ISL";break;
+        case "IN": return "IND";break;
+        case "ID": return "IDN";break;
+        case "IR": return "IRN";break;
+        case "IQ": return "IRQ";break;
+        case "IE": return "IRL";break;
+        case "IL": return "ISR";break;
+        case "IT": return "ITA";break;
+        case "JM": return "JAM";break;
+        case "JP": return "JPN";break;
+        case "JO": return "JOR";break;
+        case "KZ": return "KAZ";break;
+        case "KE": return "KEN";break;
+        case "KI": return "KIR";break;
+        case "KW": return "KWT";break;
+        case "LV": return "LVA";break;
+        case "LB": return "LBN";break;
+        case "LS": return "LSO";break;
+        case "LR": return "LBR";break;
+        case "LY": return "LBY";break;
+        case "LT": return "LTU";break;
+        case "LU": return "LUX";break;
+        case "MG": return "MDG";break;
+        case "MW": return "MWI";break;
+        case "MY": return "MYS";break;
+        case "MV": return "MDV";break;
+        case "ML": return "MLI";break;
+        case "MT": return "MLT";break;
+        case "MH": return "MHL";break;
+        case "MR": return "MRT";break;
+        case "MU": return "MUS";break;
+        case "MX": return "MEX";break;
+        case "MD": return "MDA";break;
+        case "MN": return "MNG";break;
+        case "ME": return "MNE";break;
+        case "MA": return "MAR";break;
+        case "MZ": return "MOZ";break;
+        case "NA": return "NAM";break;
+        case "NP": return "NPL";break;
+        case "NL": return "NLD";break;
+        case "NZ": return "NZL";break;
+        case "NI": return "NIC";break;
+        case "NE": return "NER";break;
+        case "NG": return "NGA";break;
+        case "KP": return "PRK";break;
+        case "NO": return "NOR";break;
+        case "OM": return "OMN";break;
+        case "PK": return "PAK";break;
+        case "PA": return "PAN";break;
+        case "PG": return "PNG";break;
+        case "PY": return "PRY";break;
+        case "PE": return "PER";break;
+        case "PH": return "PHL";break;
+        case "PL": return "POL";break;
+        case "PT": return "PRT";break;
+        case "PR": return "PRI";break;
+        case "QA": return "QAT";break;
+        case "RO": return "ROU";break;
+        case "RU": return "RUS";break;
+        case "RW": return "RWA";break;
+        case "WS": return "WSM";break;
+        case "ST": return "STP";break;
+        case "SA": return "SAU";break;
+        case "SN": return "SEN";break;
+        case "RS": return "SRB";break;
+        case "SC": return "SYC";break;
+        case "SL": return "SLE";break;
+        case "SG": return "SGP";break;
+        case "SI": return "SVN";break;
+        case "SB": return "SLB";break;
+        case "SO": return "SOM";break;
+        case "ZA": return "ZAF";break;
+        case "KR": return "KOR";break;
+        case "SS": return "SSD";break;
+        case "ES": return "ESP";break;
+        case "LK": return "LKA";break;
+        case "SD": return "SDN";break;
+        case "SR": return "SUR";break;
+        case "SZ": return "SWZ";break;
+        case "SE": return "SWE";break;
+        case "CH": return "CHE";break;
+        case "SY": return "SYR";break;
+        case "TW": return "TWN";break;
+        case "TJ": return "TJK";break;
+        case "TZ": return "TZA";break;
+        case "TH": return "THA";break;
+        case "TL": return "TLS";break;
+        case "TG": return "TGO";break;
+        case "TO": return "TON";break;
+        case "TT": return "TTO";break;
+        case "TN": return "TUN";break;
+        case "TR": return "TUR";break;
+        case "TM": return "TKM";break;
+        case "UG": return "UGA";break;
+        case "UA": return "UKR";break;
+        case "AE": return "ARE";break;
+        case "GB": return "GBR";break;
+        case "US": return "USA";break;
+        case "UY": return "URY";break;
+        case "UZ": return "UZB";break;
+        case "VU": return "VUT";break;
+        case "VE": return "VEN";break;
+        case "VN": return "VNM";break;
+        case "YE": return "YEM";break;
+        case "ZM": return "ZMB";break;
+        case "ZW": return "ZWE";break;
+        }
+};
+    
+function setGov(Gov){
+    switch (Gov) {
+        case "people's republic": return "0";break;
+        case "socialist republic": return "1";break;
+        case "federation": return "2";break;
+        case "federal republic": return "3";break;
+        case "parliamentary federal republic": return "4";break;
+        case "presidential federal republic": return "5";break;
+        case "republic": return "6";break;
+        case "parliamentary republic": return "7";break;
+        case "monarchy": return "8";break;
+        case "absolute monarchy": return "9";break;
+        case "constitutional monarchy": return "10";break;
+        case "parliamentary monarchy": return "11";break;
+        case "islamic republic": return "12";break;
+        case "islamic-socialist people's republic": return "13";break;
+        case "territory of the United States":
+        case "autonomous region of Denmark": 
+        case "autonomous territory of the Netherlands": return "14";break;
+        }
+};
+    </script>
+</html>
