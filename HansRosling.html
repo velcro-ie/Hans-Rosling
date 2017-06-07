@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang = "en" class="tas-com">
+<head>
+	<meta charset="utf-8">
+	<title>Homage to Hans Rosling</title>
+	<link href="./themes/prism.css" rel="stylesheet" />
+	<link href="./themes/tas_style.css" rel="stylesheet" />
+    <link href="themes/mystyle.css" rel="stylesheet"/>
+	<script type="text/javascript" src="./d3/d3.v3.js" charset="utf-8"></script>
+	<script src="./lib/prism.js" charset="utf-8"></script>
+</head>
+<body>
+    <h1>Homage to Hans Rosling</h1>
+    <a href="http://www.veldaconaty.com/webdesign.html" class="VeldaBtn">Back to velda conaty.com</a>
+    
+    <p sytle="text-align: center;margin:auto;">Checked items or buttons will be updated when the display is refreshed.</p>
+        <div class = "World_Map">    
+        </div>
+        <div class = "legend">
+            <h2 style="margin:2px;">Legend</h2>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="africa" name="continent" value="africa" checked></td>
+                    <td width = "20px" class="leftCell" style="background-color: #f0027f;"></td>
+                    <td>Africa</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="asia" name="continent" value="asia" checked></td>
+                    <td class="leftCell" style="background-color: #386cb0;"></td>
+                    <td>Asia</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="australia" name="continent" value="australia" checked></td>
+                    <td class="leftCell" style="background-color: #ffff99;"></td>
+                    <td>Australia &amp; Oceania</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="europe" name="continent" value="europe" checked></td>
+                    <td class="leftCell" style="background-color: #7fc97f;"></td>
+                    <td>Europe</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="namerica" name="continent" value="namerica" checked></td>
+                    <td class="leftCell" style="background-color: #beaed4;"></td>
+                    <td>North &amp; central America</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="samerica" name="continent" value="samerica" checked></td>
+                    <td class="leftCell" style="background-color: #fdc086;"></td>
+                    <td>South America</td>
+                </tr>
+            </table>
+        </div>
+        <div class = "legend">
+            <h2 style="margin:2px;">Select a year to display</h2>
+            <select id="yearSelection" name="yearSelection" ></select>
+            <div class = "button">
+                <input id="clickYear" type="button" value="Update" onclick="singleYear();" />
+            </div>
+        </div>
+        <div class = "legend">
+            <h2 style="margin:2px;">Options</h2>
+
+            <table>
+                <tr><td>
+                    <h2>Display Country </h2>
+                </td><td>
+                    <div class="labelSwitch">
+                        <input id="displayLabels" class="labelSlider" type="checkbox">
+                        <label for="displayLabels" data-on="Yes" data-off="No"></label>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <h2>Pause Animation </h2>
+                </td><td>
+                    <div class="labelSwitch">
+                        <input id="pauseAni" class="labelSlider" type="checkbox">
+                        <label for="pauseAni" data-on="Go" data-off="Stop"></label>
+                    </div>
+                </td></tr>
+            </table>
+    </div>
+    <script type="text/javascript">
+
+// Define margins
+var margin = {top: 10, right: 10, bottom: 50, left: 100};
+
+//Width and height
+var outer_width = 900;
+var outer_height = 550;
+var svg_width = outer_width - margin.left - margin.right;
+var svg_height = outer_height - margin.top - margin.bottom;
+
+// the year to display
+var display_year = 0;
+
+var currentIndex = 0;
+var Years = [];
+var yearlydata = [];
+var year = 0;
+var maxPopulation = 0;
+var maxGDP = 0;
+var maxLifeExp = 0;
+var minLifeExp = 0;
+var refreshIntervalId;
+var pause = false;  //variable to pause the animation.
+        //velda trying labeling axis
+var xLabels = ["200","500","1000","2000","5000","10k","20k","50k","100k"];
+
+function yearFilter(value){
+    return (value.Year == display_year)
+}
+function displayCountry(value){
+    // return true if the region for this record is checked.
+    if (value.Region == "Africa") {
+        if (document.getElementById('africa').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    if (value.Region == "Asia") {
+        if (document.getElementById('asia').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    
+    if (value.Region == "Australia" || value.Region == "Oceania") {    
+        if (document.getElementById('australia').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    if (value.Region == "Europe") {
+        if (document.getElementById('europe').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    if (value.Region == "North America" || value.Region == "Central America") {
+        if (document.getElementById('namerica').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    if (value.Region == "South America") {
+        if (document.getElementById('samerica').checked) {
+            return true;
+        }else{
+            return false;
+        };
+    };
+    
+    return (value.Year == display_year)
+}
+
+// ---------------------------------------funciton to return the region colour------------------------------------        
+function colourCode(Region){
+    switch (Region) {
+        case "Europe":
+            return "#7fc97f";
+//            return "navy";
+            break;
+        case "North America":
+        case "Central America":
+            return "#beaed4";
+//            return "lawngreen";
+            break;
+        case "South America":
+            return "#fdc086";
+//            return "green";
+            break;
+        case "Australia":
+        case "Oceania":
+            return "#ffff99";
+//            return "hotpink";
+            break;
+        case "Asia":
+            return "#386cb0";
+//            return "red";
+            break;  
+        case "Africa":
+            return "#f0027f";
+//            return "yellow";
+            break;
+        default:
+            return "orange";
+        }
+};
+
+// ---------------------------------------Create the svg element------------------------------------
+var svg = d3.select(".World_Map")
+    .append("svg")
+    .attr("width", svg_width + margin.left + margin.right)
+    .attr("height", svg_height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+//        ------------------------------------set up the label on the axises----------------------------------
+svg.append("text")
+    .attr("class", "ageLabel")
+    .text("Life Expectancy in Years")
+    .attr("x", -(margin.left/2))
+    .attr("y", svg_height/2) 
+    .attr("text-anchor", "middle")
+    .attr("font-family", "Arial Black")
+    .attr("font-size", "20px")
+    .style("writing-mode", "tb-rl");
+
+svg.append("text")
+    .attr("class", "ageLabel")
+    .text("Income per Cappa per Year")
+    .attr("text-anchor", "middle")
+    .attr("x", svg_width/2)
+    .attr("y", svg_height + (margin.bottom *0.8)) 
+    .attr("font-family", "Arial Black")
+    .attr("font-size", "20px");
+
+// got help for this from http://romsson.github.io/dragit/example/nations.html
+// this sets up the a display of country when a dot is hovered on.
+var hoverCtry = svg.append("text")
+    .attr("class", "hoverCtry")
+    .attr("text-anchor", "end")
+    .attr("y", svg_width)
+    .attr("x", svg_height-20)
+    .text(" ")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "150px")
+    .attr("opacity", "0.2");  
+        
+function generateVis(){
+    // get this years data
+    var filtered_datset = dataset.filter(yearFilter);
+    filtered_datset = filtered_datset.filter(displayCountry);
+    
+    filtered_datset.sort(function(a,b) {return b.population-a.population;});
+    
+    // ---------------------------------------scales------------------------------------
+     // Create a scale to scale life expentancy
+    var yScale = d3.scale.linear()
+                         .domain([minLifeExp, maxLifeExp + 10])
+                         .range([svg_height, 0]);
+
+    // Create a scale to scale GDP
+    var xScale = d3.scale.log()
+                             .domain([d3.min(dataset, function(d) { return +d.GDP; }), maxGDP])
+                             .range([0, svg_width]);
+
+    var rScale = d3.scale.linear()
+                         .domain([0, maxPopulation])
+                         .range([5,70]);
+    
+    // ---------------------------------------axis------------------------------------
+    // Create an x-axis connected to the x scale
+    var xAxis = d3.svg.axis()
+                  .scale(xScale)
+                  .orient("bottom")
+                  .ticks(12, d3.format(",d"));
+
+    //Define Y axis
+    var yAxis = d3.svg.axis()
+                      .scale(yScale)
+                      .orient("left");
+
+    // Call the x-axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + svg_height + ")")
+        .call(xAxis);
+
+    // Call the y axis
+    svg.append("g")
+        .attr("class", "axis")
+        .call(yAxis);
+        
+    // ---------------------------------------grid lines------------------------------------
+    // got help from http://stackoverflow.com/questions/15580300/proper-way-to-draw-gridlines                           
+    svg.selectAll("line.horizontalGrid")
+        .data(yScale.ticks(8))
+        .enter()
+        .append("line")
+            .attr(
+            {
+                "class":"horizontalGrid",
+                "x1" : margin.right,
+                "x2" : svg_width,
+                "y1" : function(d){ return yScale(d);},
+                "y2" : function(d){ return yScale(d);},
+                "shape-rendering" : "crispEdges"
+            });
+    svg.selectAll("line.verticalGrid").data(xScale.ticks(9)).enter()
+        .append("line")
+            .attr(
+            {
+                "class":"verticalGrid",
+                "x1" : function(d){ return xScale(d);},
+                "x2" : function(d){ return xScale(d);},
+                "y1" : svg_height,
+                "y2" : margin.right,
+                "shape-rendering" : "crispEdges"
+            });
+        
+    
+    // ---------------------------------------Join new data------------------------------------
+    var circles = svg.selectAll("circle")
+			   .data(filtered_datset, function key(d){
+                return d.Country;
+            });
+    
+    // ---------------------------------------Update the circles------------------------------------
+    circles
+        .transition()
+        .duration(1000)
+        .ease("easeInOutBack")
+        .attr("cx", function(d) {
+		  		return xScale(d.GDP);
+		})
+		.attr("cy", function(d) {
+		  		return yScale(d.LifeExp);
+		})
+		.attr("r", function(d) {
+		      return rScale(d.Population);
+        })
+        .attr("stroke", "black")
+        .attr("fill",function(d){return colourCode(d.Region)})
+        .attr("onmouseover",function(d){hoverCtry.text(d.Country)})
+        .attr("onmouseout",function(d){hoverCtry.text(" ")});
+//        .attr("onmouseover",function(d){setCtry(d.Country)})
+//        .attr("onmouseout",function(d){unsetCtry()});
+//    hoverCtry.text(country);
+//        .append("svg:title")
+//        .text(function(d) { return d.Country + " " + d.Population; });
+    
+    // ---------------------------------------enter new circles------------------------------------
+    circles.enter()
+        .append("circle")
+        .transition()
+        .duration(1000)
+        .ease("easeInOutBack")
+        .attr("cx", function(d) {
+		  		return xScale(d.GDP);
+		})
+		.attr("cy", function(d) {
+		  		return yScale(d.LifeExp);
+		})
+		.attr("r", function(d) {
+		      return rScale(d.Population);
+        })
+        .attr("stroke", "black")
+        .attr("fill",function(d){return colourCode(d.Region)});
+
+    // ---------------------------------------delete redundant circles------------------------------------
+    circles.exit().remove();
+    
+    
+    // ---------------------------------------Velda try again------------------------------------
+
+   // console.log (document.getElementById("displayLabels").checked)
+    // ---------------------------------------Join new data------------------------------------
+    //    console.log(svg.selectAll(".countryLabel").length)
+    svg.select(".countryLabel").remove();
+
+    // check if the labels option is pressed
+    var labels = svg.selectAll(".countryLabel")
+           .data(filtered_datset, function key(d){
+            return d.Country;
+        });
+
+// ---------------------------------------Update the text------------------------------------
+
+    labels.transition()
+        .duration(1000)
+        .ease("easeInOutBack")
+        .attr("class", "countryLabel")
+        .attr("x", function(d) {
+            return xScale(d.GDP);
+        })
+        .attr("y", function(d) {
+                return yScale(d.LifeExp);
+        });
+    labels.enter()
+        .append("text")
+        .attr("class", "countryLabel")
+        .text(function(d) {
+            return d.Country;
+        })
+        .attr("text-anchor", "left")
+        .attr("x", function(d) {
+            return xScale(d.GDP);
+        })
+        .attr("y", function(d) {
+                return yScale(d.LifeExp);
+        })					
+       .attr("font-family", "sans-serif")
+       .attr("font-size", "11px")
+       .attr("fill", "black");
+    //Exit…
+    labels.exit().remove();
+    
+     if (document.getElementById("displayLabels").checked){
+        labels.attr("visibility", "visible")}
+    else{
+        labels.attr("visibility", "hidden")
+    }; 
+    
+    // ---------------------------------------Update the year------------------------------------
+    
+      svg.select(".year").remove();
+        svg.append("text")
+            .attr("class", "year")
+           .text(display_year)
+           .attr("x", 0)
+           .attr("y", 125) 
+           .attr("font-family", "sans-serif")
+           .attr("font-size", "150px")
+           .attr("opacity", "0.2");
+//           .attr("x", 150)
+//           .attr("y", 300) 
+    
+}
+        
+        
+// Load the file data.csv and generate a visualisation based on it
+d3.csv("data/Gapminder_All_Time.csv", function(error, data){
+    // handle any data loading errors
+    if(error){
+        console.log("Something went wrong");
+        console.log(error);
+    }else{
+        console.log("Data Loaded");
+        
+        // Assign  the data object loaded to the global dataset variable
+        dataset = data;
+
+        //--------------------------------set up the variables for scales--------------------------------
+//<input type="range" min="0" max="50" value="0" step="5" onchange="showValue(this.value)" /> slider code
+        maxPopulation = d3.max(dataset, function(d) { return +d.Population; });
+        maxGDP = d3.max(dataset, function(d) { return +d.GDP; });
+        maxLifeExp = d3.max(dataset, function(d) { return +d.LifeExp; });
+        minLifeExp = d3.min(dataset, function(d) { return +d.LifeExp; });
+
+        var yearData = [];                
+
+        //----------------------------get the years from the data----------------------
+        yearlydata = d3.nest()
+                  .key(function(d) { return d.Year; })
+                  .entries(dataset);
+        
+        //--------------------------Update the drop down list of years---------------------
+        var dropdown = document.getElementById("yearSelection");
+        for (var i = 0; i < yearlydata.length;i++){
+            Years.push(yearlydata[i].key);
+            dropdown[dropdown.length] = new Option(yearlydata[i].key,yearlydata[i].key);
+        }
+
+        //----------------------------show the data for each year.----------------------
+        currentIndex = 0
+        display_year = Years[currentIndex];
+        generateVis();
+        refreshIntervalId = setInterval(function() {
+            // don't do anything if pause is pressed.
+            if (!pause){
+                currentIndex = currentIndex + 1;
+                if (currentIndex < Years.length){
+                    display_year = Years[currentIndex];
+                }
+                else{
+                    currentIndex = 0
+                    display_year = Years[currentIndex];
+                }
+//                updateData();
+                generateVis();
+            }
+        }, 2000);         
+    }
+});
+    
+
+        
+function singleYear(){
+    //got help http://stackoverflow.com/questions/109086/stop-setinterval-call-in-javascript
+//    clearInterval(refreshIntervalId);
+    pause = true;
+    display_year = document.getElementById("yearSelection").value;
+    
+//                updateData();
+    generateVis();
+    document.getElementById('pauseAni').checked = true; //pause animation
+    // restart animimation from this year.
+    for (var x = 0; x <= Years.length;x++){
+        if (display_year == Years[x]){
+            currentIndex = x
+        }
+    }
+};
+
+document.getElementById('pauseAni').onclick = function() {
+    // access properties using this keyword
+    if ( this.checked ) {
+       pause = true;
+    } else {
+        pause = false;
+    }
+};
+        
+    </script>
+    </body>
+</html>

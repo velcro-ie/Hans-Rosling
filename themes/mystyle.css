@@ -1,0 +1,215 @@
+
+h1{
+    text-align: center;
+    color: green;
+}
+
+h2{
+    text-align: center;
+}
+h3 {
+    width: 100%;
+    margin: 0;
+    padding: 4px;
+    text-align: center;
+}
+h3:after {
+    display: inline-block;
+    margin: 0 0 8px 20px;
+    height: 3px;
+    content: " ";
+    text-shadow: none;
+    background-color: #999;
+    width: 140px;
+}
+h3:before {
+    display: inline-block;
+    margin: 0 20px 8px 0;
+    height: 3px;
+    content: " ";
+    text-shadow: none;
+    background-color: #999;
+    width: 140px;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}	
+.horizontalGrid,
+.verticalGrid{
+    fill: none;
+    stroke: black;
+    stroke-width: 1px;
+    opacity: 0.2;
+}
+.World_Map{
+    float:left;
+    margin-left: 20px;
+    border:10px outset yellowgreen;
+}
+
+.legend{
+    float: left;
+    margin-left: 30px;
+    width: 250px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border:10px outset yellowgreen;
+    margin-bottom: 5px;
+}
+
+.legend2{
+    margin: auto;
+    width: 80%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border:10px outset yellowgreen;
+    margin-bottom: 5px;
+}
+
+.button{
+    text-align:center;
+    margin:auto;
+    margin-bottom: 20px;
+}
+
+#clickYear{
+    border: 2px solid yellowgreen;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 1.25em;
+    margin: auto;
+    /*gradient styles*/
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, green), color-stop(.5, yellowgreen), color-stop(.51, yellowgreen), to(green));
+    background: -moz-linear-gradient(top, green, yellowgreen 50%, yellowgreen 51%, green);
+}
+
+table{
+    margin: auto;
+}
+td{
+    padding: 3px;
+}
+.leftCell{
+    border: 1px solid black;
+}
+
+select{
+    border: 2px solid yellowgreen;
+    margin: 0px 20px 10px 20px;
+    text-align: center;
+    font-weight: 600;
+/*    border-radius: 20px;*/
+    padding: 0px 10px;
+    font-size: 1.25em;
+    width: 80%;
+}
+
+/* Code for the yes/no buttton */
+/* Help gotten from http://callmenick.com/post/css-toggle-switch-examples */
+
+.labelSlider {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+.labelSlider + label {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+input.labelSlider + label {
+  padding: 2px;
+  width: 60px; /* width */
+  height: 30px; /* height */ 
+}
+input.labelSlider + label:before,
+input.labelSlider + label:after {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  color: #fff;
+  font-family: "Roboto Slab", serif;
+  font-size: 20px;
+  text-align: center;
+  line-height: 30px;    /*lets try */
+    margin-left: 20px;
+}
+input.labelSlider + label:before {
+  background-color: #dddddd;
+  content: attr(data-off);
+  transition: transform 0.5s;
+  backface-visibility: hidden;
+}
+input.labelSlider + label:after {
+  background-color: yellowgreen;
+  content: attr(data-on);
+  transition: transform 0.5s;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+}
+input.labelSlider:checked + label:before {
+  transform: rotateY(180deg);
+}
+input.labelSlider:checked + label:after {
+  transform: rotateY(0);
+}
+.bar {
+  fill: steelblue;
+}
+
+.axis path {
+  display: none;
+}
+
+.VeldaBtn{
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0, green), color-stop(.5, yellowgreen), color-stop(.51, yellowgreen), to(green));
+    background: -moz-linear-gradient(top, green, yellowgreen 50%, yellowgreen 51%, green);
+    border: 2px solid yellowgreen;
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-weight: 600;
+    font-size: 1.25em;
+    text-decoration: none;
+    text-align: center;
+    color: black;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+a{
+    color:black;
+    }
+/* unvisited link */
+a:link {
+    color: black;
+}
+
+/* visited link */
+a:visited {
+    color: black;
+}
+
+/* mouse over link */
+a:hover {
+    color: black;
+}
+
+/* selected link */
+a:active {
+    color: black;
+}
